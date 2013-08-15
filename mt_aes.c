@@ -10,7 +10,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 
-#define N_THREADS 6
+#define N_THREADS 20
 #define DEBUG 0
 
 #define ENC_MODE 0
@@ -36,7 +36,6 @@ typedef struct e_thread_args{
 
 static MUTEX_TYPE *mutex_buf = NULL;
 static void locking_function(int mode, int n, const char*file, int line);
-/* static unsigned long id_function(void); */
 static void* id_function(CRYPTO_THREADID * id);
 int THREAD_setup(void);
 int THREAD_cleanup(void);
@@ -49,8 +48,6 @@ void pric(char* s, int len){
 	fprintf(stderr, "%x ",  s[i]);
     }
     fprintf(stderr, "\n");
-
-  
 }
 
 void pris(char* s){
@@ -251,8 +248,7 @@ int update(int mode, e_thread_args args[N_THREADS], char* in, char*out, int len)
     pris("Waiting to join encryption threads");
 
     /* Free attribute and wait for the other threads */
-    /* pthread_attr_destroy(&attr); */
-
+    pthread_attr_destroy(&attr);
     for(i = 0; i < N_THREADS; i++) {
 
 	if (args[i].len > 0){
@@ -294,12 +290,6 @@ int aes_init(unsigned char *key_data, int key_data_len,
     EVP_CIPHER_CTX_init(d_ctx);
     EVP_DecryptInit_ex(d_ctx, type, NULL, key, iv);
 
-    /* EVP_EncryptInit_ex(e_ctx, NULL, NULL, NULL, NULL); */
-    /* EVP_DecryptInit_ex(d_ctx, NULL, NULL, NULL, NULL); */
-
-
-
-
     return 0;
 }
 
@@ -325,7 +315,7 @@ int main(int argc, char **argv)
 	args[i].e = (EVP_CIPHER_CTX*) malloc(sizeof(EVP_CIPHER_CTX));
 	args[i].d = (EVP_CIPHER_CTX*) malloc(sizeof(EVP_CIPHER_CTX));
 
-	if (aes_init(key_data, key_data_len, (unsigned char *)&salt, args[i].e, args[i].d)) {
+	if (aes_init(key_data, key_data_len, (unsigned char *)&salt+i, args[i].e, args[i].d)) {
 	    printf("Couldn't initialize AES cipher [%d]\n", i);
 	    return -1;
 	}
@@ -333,23 +323,15 @@ int main(int argc, char **argv)
     }
 
 
-    /* ciphertext = aes_encrypt(&en, plaintext, len); */
-    /* pric(ciphertext, len); */
     update(ENC_MODE, args, plaintext, ciphertext, len);
-    /* pric(ciphertext, len); */
-    /* aes_decrypt(&de, plaintext, ciphertext, len); */
     update(DEC_MODE, args, plaintext, ciphertext, len);
-    /* plaintext = aes_decrypt(&de, ciphertext, len); */
 
 
     printf("Encrypted: %s\n",ciphertext);
     printf("Decrypted: %s\n\n",plaintext);
 
-
     /* EVP_CIPHER_CTX_cleanup(&en); */
     /* EVP_CIPHER_CTX_cleanup(&de); */
-
-
 
     THREAD_cleanup();
   
