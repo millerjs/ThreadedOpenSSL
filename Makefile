@@ -11,4 +11,4 @@ example: crypto.o example.o
 	$(C++) $^ -o example $(LDFLAGS)
 
 clean:
-	rm -f *.o $(APPOUT) 
+	rm -f *.o $(APPOUT) example

@@ -39,20 +39,17 @@ int main(int argc, char*argv[])
 	exit(1);
     }
 
-
-    printf("Original buffer:\n");
-    for (int i = 0; i < 128; i++){
+    for (int i = 0; i < BUFF_SIZE; i++){
 	data[i] = (char) (i % 255);
-	printf("%d ", data[i]);
     }
 
-    int n_rounds = 100;
+    int n_rounds = 10;
 
     // ----------- [ Run encryption
     for (int j = 0; j < n_rounds; j++){
 	crypto_cursor = 0;
 	for (int i = 0; i < N_CRYPTO_THREADS; i ++){
-	    pass_to_enc_thread(data+crypto_cursor, crypto_buf_len, &enc); 
+	    pass_to_enc_thread(data+crypto_cursor, data+crypto_cursor, crypto_buf_len, &enc); 
 	    crypto_cursor += crypto_buf_len;
 	
 	}
@@ -67,7 +64,7 @@ int main(int argc, char*argv[])
 	// ----------- [ Run decryption
 	crypto_cursor = 0;
 	for (int i = 0; i < N_CRYPTO_THREADS; i ++){
-	    pass_to_enc_thread(data+crypto_cursor, crypto_buf_len, &dec); 
+	    pass_to_enc_thread(data+crypto_cursor, data+crypto_cursor, crypto_buf_len, &dec); 
 	    crypto_cursor += crypto_buf_len;
 	    
 	}
